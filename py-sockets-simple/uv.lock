@@ -1,0 +1,25 @@
+version = 1
+revision = 3
+requires-python = ">=3.14"
+
+[manifest]
+members = [
+    "client",
+    "py-sockets-simple",
+    "server",
+]
+
+[[package]]
+name = "client"
+version = "0.1.0"
+source = { editable = "client" }
+
+[[package]]
+name = "py-sockets-simple"
+version = "0.1.0"
+source = { virtual = "." }
+
+[[package]]
+name = "server"
+version = "0.1.0"
+source = { editable = "server" }
