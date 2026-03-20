@@ -1,0 +1,7 @@
+Static {
+    content-align: center middle;
+    background: black;
+    border: solid darkred;
+    height: 1fr;
+    width: 1fr;
+}
