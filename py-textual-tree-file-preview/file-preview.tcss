@@ -1,0 +1,11 @@
+Static {
+    height: 1fr;
+    width: 1fr;
+    border: $accent;
+}
+
+Tree {
+    height: 1fr;
+    width: 1fr;
+}
+
