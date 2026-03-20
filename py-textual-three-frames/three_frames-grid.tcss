@@ -1,0 +1,14 @@
+Screen {
+    layout: grid;
+    grid-size: 2 2;
+    content-align: center middle;
+}
+
+#one {
+    row-span: 2;
+}
+
+.box {
+    height: 100%;
+    border: solid darkred;
+}
