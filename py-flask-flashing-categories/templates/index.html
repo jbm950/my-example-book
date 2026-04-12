@@ -1,0 +1,28 @@
+<!doctype html>
+<h1>Index Page</h1>
+<a href="{{ url_for('just_warnings') }}">warnings</a> <br>
+<a href="{{ url_for('warn_and_error') }}">warnings and errors!</a>
+
+<div>
+  {% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+      <ul>
+      {% for category, message in messages %}
+        <li>Category: "{{ category }}", Message: "{{ message }}"</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+</div>
+
+<div>
+  {% with errors = get_flashed_messages(category_filter=["error"]) %}
+    {% if errors %}
+      <ul>
+      {% for error in errors %}
+        <li>Error Found!: {{ error }}</li>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+</div>
