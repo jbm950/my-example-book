@@ -210,3 +210,7 @@ __marimo__/
 # Vim files
 *.swp
 tags
+
+# Databases
+*.db
+*.db3
