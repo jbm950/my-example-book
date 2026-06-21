@@ -1,6 +1,9 @@
 [package]
-name = "rs-proj-1553-heartbeat"
+name = "rs1553-net"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+tokio = { version = "1.52.3", features = ["full"] }
+tracing = "0.1.44"
+tracing-subscriber = "0.3.23"
