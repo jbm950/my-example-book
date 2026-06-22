@@ -1,5 +1,6 @@
 use super::support::{extract_field, extract_flag};
 
+// Values are the actual protocol bit values for each type.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
 pub enum TxRx {
     T = 1,
