@@ -1,3 +1,5 @@
+use crate::protocol::ProtocolWord;
+
 use super::support::{extract_field, extract_flag};
 
 // Values are the actual protocol bit values for each type.
@@ -38,6 +40,12 @@ impl CmdWord {
             subaddr,
             word_count,
         }
+    }
+}
+
+impl ProtocolWord for CmdWord {
+    fn to_be_bytes(self) -> [u8; 2] {
+        u16::from(self).to_be_bytes()
     }
 }
 
@@ -100,6 +108,21 @@ mod tests {
         .into();
 
         assert_eq!(cmd_word, 2765);
+    }
+
+    #[test]
+    fn to_be_bytes_works_correctly() {
+        assert_eq!(
+            [10u8, 205],
+            CmdWord::new(
+                1,
+                Subaddress {
+                    address: 22,
+                    tr: TxRx::R
+                },
+                13
+            ).to_be_bytes()
+        );
     }
 
     #[test]

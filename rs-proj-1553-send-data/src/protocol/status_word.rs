@@ -1,3 +1,5 @@
+use crate::protocol::ProtocolWord;
+
 use super::support::{extract_field, extract_flag};
 
 const RT_ADDR_POSITION: u8 = 11;
@@ -19,6 +21,12 @@ pub struct StatusWord {
     pub subsystem_flag: bool,
     pub dyn_bus_accept: bool,
     pub terminal_flag: bool,
+}
+
+impl ProtocolWord for StatusWord {
+    fn to_be_bytes(self) -> [u8; 2] {
+        u16::from(self).to_be_bytes()
+    }
 }
 
 impl From<StatusWord> for u16 {
@@ -94,6 +102,22 @@ mod tests {
         assert_eq!(status_word, 10508)
     }
 
+    #[test]
+    fn to_be_bytes_works_correctly() {
+        assert_eq!(
+            [40u8, 0],
+            StatusWord {
+                rt_addr: 5,
+                msg_error: false,
+                service_req: false,
+                broadcast_received: false,
+                busy_bit: false,
+                subsystem_flag: false,
+                dyn_bus_accept: false,
+                terminal_flag: false
+            }.to_be_bytes()
+        );
+    }
     #[test]
     fn build_status_word_from_bytes_correctly() {
         assert_eq!(
