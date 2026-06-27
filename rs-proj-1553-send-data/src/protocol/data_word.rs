@@ -11,6 +11,12 @@ impl DataWord {
     }
 }
 
+impl From<u16> for DataWord {
+    fn from(value: u16) -> Self {
+        Self(value)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
