@@ -36,7 +36,7 @@ pub async fn bus_controller(server_addr: SocketAddr) -> io::Result<()> {
             }
 
             _ = rt5_7t_interval.tick() => {
-                let cmd = CmdWord::new(5, Subaddress { address: 7, tr: TxRx::T }, 5).into();
+                let cmd = CmdWord::new(5, Subaddress { address: 7, tr: TxRx::T }, 5);
                 let data: Vec<DataWord> = Vec::new();
                 let cmd_msg = CommandMessage {
                     word: cmd,
@@ -47,7 +47,7 @@ pub async fn bus_controller(server_addr: SocketAddr) -> io::Result<()> {
             }
 
             _ = rt13_13t_interval.tick() => {
-                let cmd = CmdWord::new(13, Subaddress { address: 13, tr: TxRx::T }, 1).into();
+                let cmd = CmdWord::new(13, Subaddress { address: 13, tr: TxRx::T }, 1);
                 let data: Vec<DataWord> = Vec::new();
                 let cmd_msg = CommandMessage {
                     word: cmd,
