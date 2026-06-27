@@ -4,7 +4,6 @@ use tokio::io;
 use tracing::info;
 use tracing_subscriber::{EnvFilter, Layer, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
-
 #[tokio::main]
 async fn main() -> io::Result<()> {
     let stdout_layer = fmt::layer()
@@ -13,7 +12,9 @@ async fn main() -> io::Result<()> {
     tracing_subscriber::registry().with(stdout_layer).init();
 
     info!("Starting bus controller");
-    let server_addr = "127.0.0.1:8080".parse().expect("Socket address parser failed");
+    let server_addr = "127.0.0.1:8080"
+        .parse()
+        .expect("Socket address parser failed");
 
     let _ = bus_controller(server_addr).await;
 

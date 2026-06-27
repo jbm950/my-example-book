@@ -3,7 +3,6 @@ use rs1553_net::app::rt;
 use tracing::{error, info};
 use tracing_subscriber::{EnvFilter, Layer, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
-
 #[tokio::main]
 async fn main() {
     let stdout_layer = fmt::layer()
@@ -20,8 +19,9 @@ async fn main() {
     let rt_addr: u8 = args[1].parse().expect("Failed to parse RT address");
 
     info!("Starting RT {rt_addr}");
-    let server_addr = "127.0.0.1:8080".parse().expect("Socket address parser failed");
+    let server_addr = "127.0.0.1:8080"
+        .parse()
+        .expect("Socket address parser failed");
 
     let _ = rt(server_addr, rt_addr).await;
 }
-
