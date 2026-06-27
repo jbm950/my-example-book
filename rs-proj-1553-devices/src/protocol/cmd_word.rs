@@ -51,10 +51,12 @@ impl ProtocolWord for CmdWord {
 
 impl From<CmdWord> for u16 {
     fn from(cmd_word: CmdWord) -> Self {
+        // 1553 protocl states 32 words -> value of 0
+        let word_count = if cmd_word.word_count == 32 { 0 } else { cmd_word.word_count };
         ((cmd_word.rt_addr as u16) << RT_ADDR_POSITION)
             | ((cmd_word.subaddr.tr as u16) << TX_RX_POSITION)
             | ((cmd_word.subaddr.address as u16) << SUBADDRESS_POSITION)
-            | (cmd_word.word_count as u16)
+            | (word_count as u16)
     }
 }
 
@@ -63,7 +65,9 @@ impl From<u16> for CmdWord {
         let rt_addr = extract_field(cmd_word, RT_ADDR_POSITION, 0b1_1111) as u8;
         let tr = TxRx::from(extract_flag(cmd_word, TX_RX_POSITION));
         let subaddr = extract_field(cmd_word, SUBADDRESS_POSITION, 0b1_1111) as u8;
-        let word_count = extract_field(cmd_word, WORD_COUNT_POSITION, 0b1_1111) as u8;
+
+        let mut word_count = extract_field(cmd_word, WORD_COUNT_POSITION, 0b1_1111) as u8;
+        if word_count == 0 { word_count = 32};  // 1553 protocol states value of 0 -> 32 words
 
         Self::new(
             rt_addr,
