@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 
 use tokio::{
-    io::{AsyncReadExt, AsyncWriteExt},
+    io::{self, AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream},
     sync::broadcast,
 };
@@ -22,7 +22,7 @@ async fn handle_client(
     broadcast_tx: broadcast::Sender<Message>,
 ) {
     let (mut reader, mut writer) = socket.into_split();
-    let mut buf = vec![0u8; READ_BUF_SIZE];
+    let mut buf = [0u8; READ_BUF_SIZE];
 
     let mut broadcast_rx = broadcast_tx.subscribe();
 
@@ -68,7 +68,7 @@ async fn handle_client(
     }
 }
 
-pub async fn bus(listener: TcpListener) -> std::io::Result<()> {
+pub async fn tcp_bus(listener: TcpListener) -> io::Result<()> {
     // broadcast::channel requires an initial receiver; real ones come from `.subscribe()` per
     // client.
     let (broadcast_tx, _rx) = broadcast::channel::<Message>(CHANNEL_CAPACITY);
