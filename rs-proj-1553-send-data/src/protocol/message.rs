@@ -8,7 +8,7 @@ pub struct Message<W> {
 pub type CommandMessage = Message<CmdWord>;
 pub type StatusMessage = Message<StatusWord>;
 
-impl <W: ProtocolWord> Message<W> {
+impl<W: ProtocolWord> Message<W> {
     pub fn encode(&self) -> Vec<u8> {
         let mut out = Vec::with_capacity(2 + self.data.len() * 2);
 
@@ -38,9 +38,10 @@ mod tests {
                     DataWord(u16::from_be_bytes([0_u8, 15])),
                     DataWord(u16::from_be_bytes([27_u8, 81])),
                     DataWord(u16::from_be_bytes([212_u8, 124])),
-                    ]
-            }.encode(),
-        [105_u8, 73, 0, 15, 27, 81, 212, 124]
+                ]
+            }
+            .encode(),
+            [105_u8, 73, 0, 15, 27, 81, 212, 124]
         );
 
         assert_eq!(
@@ -52,9 +53,10 @@ mod tests {
                     DataWord(u16::from_be_bytes([51_u8, 0])),
                     DataWord(u16::from_be_bytes([86_u8, 69])),
                     DataWord(u16::from_be_bytes([15_u8, 162])),
-                    ]
-            }.encode(),
-        [92_u8, 12, 98, 243, 167, 192, 51, 0, 86, 69, 15, 162]
+                ]
+            }
+            .encode(),
+            [92_u8, 12, 98, 243, 167, 192, 51, 0, 86, 69, 15, 162]
         );
     }
 }

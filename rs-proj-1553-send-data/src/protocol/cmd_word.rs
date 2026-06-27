@@ -121,7 +121,8 @@ mod tests {
                     tr: TxRx::R
                 },
                 13
-            ).to_be_bytes()
+            )
+            .to_be_bytes()
         );
     }
 

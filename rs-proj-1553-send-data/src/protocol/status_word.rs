@@ -115,7 +115,8 @@ mod tests {
                 subsystem_flag: false,
                 dyn_bus_accept: false,
                 terminal_flag: false
-            }.to_be_bytes()
+            }
+            .to_be_bytes()
         );
     }
     #[test]
