@@ -7,7 +7,7 @@ use tokio::{
 use tracing::trace;
 
 use crate::protocol::{CmdWord, CommandMessage, DataWord, Subaddress, TxRx};
-use crate::{net::TcpBusController, protocol::StatusMessage};
+use crate::{devices::gps::GpsTelemetry, net::TcpBusController, protocol::StatusMessage};
 
 const RT5_INTERVAL: f64 = 3.0; // Hertz
 const RT13_INTERVAL: f64 = 1.0; // Hertz
@@ -47,14 +47,16 @@ pub async fn bus_controller(server_addr: SocketAddr) -> io::Result<()> {
             }
 
             _ = rt13_13t_interval.tick() => {
-                let cmd = CmdWord::new(13, Subaddress { address: 13, tr: TxRx::T }, 1);
+                let cmd = CmdWord::new(13, Subaddress { address: 13, tr: TxRx::T }, 15);
                 let data: Vec<DataWord> = Vec::new();
                 let cmd_msg = CommandMessage {
                     word: cmd,
                     data
                 };
 
-                let _ = do_transaction(&mut tcp_bc, cmd_msg).await?;
+                let status_msg = do_transaction(&mut tcp_bc, cmd_msg).await?;
+                let gps_telemetry = GpsTelemetry::from_data_words(status_msg.data);
+                println!("{:?}", gps_telemetry);
             }
         }
     }
