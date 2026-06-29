@@ -1,5 +1,3 @@
-/// Changes to make.
-/// * do the same thing for a "power" module and make that RT 5
 use std::net::SocketAddr;
 
 use tokio::{io, time::Instant};
