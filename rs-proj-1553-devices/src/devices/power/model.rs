@@ -1,5 +1,12 @@
 use tokio::time::Duration;
 
+use crate::protocol::DataWord;
+
+pub enum PowerTelemetryError {
+    UnknownMode(u8),
+    UnknownFault(u8),
+}
+
 #[derive(Clone, Copy)]
 pub enum PowerMode {
     Idle,
@@ -7,11 +14,55 @@ pub enum PowerMode {
     Discharging,
 }
 
+impl PowerMode {
+    fn encode(self) -> u8 {
+        match self {
+            Self::Idle => 0,
+            Self::Charging => 1,
+            Self::Discharging => 2,
+        }
+    }
+
+    fn decode(byte: u8) -> Result<Self, PowerTelemetryError> {
+        Ok(match byte {
+            0 => Self::Idle,
+            1 => Self::Charging,
+            2 => Self::Discharging,
+            _ => {
+                return Err(PowerTelemetryError::UnknownMode(byte));
+            }
+        })
+    }
+}
+
 #[derive(Clone, Copy)]
 pub enum Fault {
     None,
     OverTemp,
     UnderVoltage,
+}
+
+impl Fault {
+    fn encode(self) -> u8 {
+        match self {
+            Self::None => 0,
+
+            Self::OverTemp => 1,
+
+            Self::UnderVoltage => 2,
+        }
+    }
+
+    fn decode(byte: u8) -> Result<Self, PowerTelemetryError> {
+        Ok(match byte {
+            0 => Self::None,
+            1 => Self::OverTemp,
+            2 => Self::UnderVoltage,
+            _ => {
+                return Err(PowerTelemetryError::UnknownFault(byte));
+            }
+        })
+    }
 }
 
 struct Power {
@@ -37,26 +88,26 @@ impl Power {
 
         match self.mode {
             PowerMode::Idle => {
-                self.temperature_c = (self.temperature_c + elapsed_sec * Power::IDLE_TEMP_RATE)
-                    .max(Power::AMBIENT_TEMP);
+                self.temperature_c = (self.temperature_c + elapsed_sec * Self::IDLE_TEMP_RATE)
+                    .max(Self::AMBIENT_TEMP);
             }
             PowerMode::Charging => {
                 self.charge_percent =
-                    (self.charge_percent + elapsed_sec * Power::CHARGE_RATE).min(100.0);
-                self.temperature_c += elapsed_sec * Power::CHARGE_TEMP_RATE;
+                    (self.charge_percent + elapsed_sec * Self::CHARGE_RATE).min(100.0);
+                self.temperature_c += elapsed_sec * Self::CHARGE_TEMP_RATE;
             }
             PowerMode::Discharging => {
                 self.charge_percent =
-                    (self.charge_percent - elapsed_sec * Power::DISCHARGE_RATE).max(0.0);
-                self.temperature_c += elapsed_sec * Power::DISCHARGE_TEMP_RATE;
+                    (self.charge_percent - elapsed_sec * Self::DISCHARGE_RATE).max(0.0);
+                self.temperature_c += elapsed_sec * Self::DISCHARGE_TEMP_RATE;
             }
         }
 
-        if self.temperature_c > Power::MAX_TEMP {
+        if self.temperature_c > Self::MAX_TEMP {
             self.fault = Fault::OverTemp;
         }
 
-        if self.charge_percent < Power::MIN_CHARGE && !matches!(self.mode, PowerMode::Charging) {
+        if self.charge_percent < Self::MIN_CHARGE && !matches!(self.mode, PowerMode::Charging) {
             self.fault = Fault::UnderVoltage;
         }
 
@@ -99,6 +150,50 @@ struct PowerTelemetry {
     charge_percent: u8, // Smaller type than simulated state to conserve bandwidth
     temperature_c: f32,
     fault: Fault,
+}
+
+impl PowerTelemetry {
+    const SIZE: usize = 6;
+
+    pub fn to_be_bytes(&self) -> [u8; Self::SIZE] {
+        let first_byte = (self.mode.encode() << 4) | self.fault.encode();
+        let temp_bytes = self.temperature_c.to_be_bytes();
+
+        [
+            first_byte,
+            self.charge_percent,
+            temp_bytes[0],
+            temp_bytes[1],
+            temp_bytes[2],
+            temp_bytes[3],
+        ]
+
+    }
+
+    pub fn to_data_words(&self) -> Vec<DataWord> {
+        self.to_be_bytes()
+            .chunks_exact(2)
+            .map(|chunk| {
+                let bytes: [u8; 2] = chunk.try_into().unwrap();
+                DataWord::from(u16::from_be_bytes(bytes))
+            })
+            .collect()
+    }
+
+    pub fn from_be_bytes(bytes: &[u8]) -> Result<Self, PowerTelemetryError> {
+        Ok(Self {
+            mode: PowerMode::decode((bytes[0] >> 4) & 0b1111)?,
+            charge_percent: bytes[1],
+            temperature_c: f32::from_be_bytes(bytes[2..6].try_into().unwrap()),
+            fault: Fault::decode(bytes[0] & 0b1111)?,
+        })
+    }
+
+    pub fn from_data_words(words: &[DataWord]) -> Result<Self, PowerTelemetryError> {
+        let bytes: Vec<u8> = words.iter().flat_map(|word| word.to_be_bytes()).collect();
+
+        Self::from_be_bytes(&bytes)
+    }
 }
 
 enum PowerCommand {
