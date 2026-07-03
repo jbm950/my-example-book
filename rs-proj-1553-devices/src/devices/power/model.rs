@@ -2,9 +2,11 @@ use tokio::time::Duration;
 
 use crate::protocol::DataWord;
 
-pub enum PowerTelemetryError {
+pub enum PowerParseError {
+    InvalidLength { expected: usize, actual: usize },
     UnknownMode(u8),
     UnknownFault(u8),
+    UnknownCommand(u8),
 }
 
 #[derive(Clone, Copy)]
@@ -15,21 +17,25 @@ pub enum PowerMode {
 }
 
 impl PowerMode {
+    const IDLE: u8 = 0;
+    const CHARGING: u8 = 1;
+    const DISCHARGING: u8 = 2;
+
     fn encode(self) -> u8 {
         match self {
-            Self::Idle => 0,
-            Self::Charging => 1,
-            Self::Discharging => 2,
+            Self::Idle => Self::IDLE,
+            Self::Charging => Self::CHARGING,
+            Self::Discharging => Self::DISCHARGING,
         }
     }
 
-    fn decode(byte: u8) -> Result<Self, PowerTelemetryError> {
+    fn decode(byte: u8) -> Result<Self, PowerParseError> {
         Ok(match byte {
-            0 => Self::Idle,
-            1 => Self::Charging,
-            2 => Self::Discharging,
+            Self::IDLE => Self::Idle,
+            Self::CHARGING => Self::Charging,
+            Self::DISCHARGING => Self::Discharging,
             _ => {
-                return Err(PowerTelemetryError::UnknownMode(byte));
+                return Err(PowerParseError::UnknownMode(byte));
             }
         })
     }
@@ -43,23 +49,25 @@ pub enum Fault {
 }
 
 impl Fault {
+    const NONE: u8 = 0;
+    const OVERTEMP: u8 = 1;
+    const UNDERVOLTAGE: u8 = 2;
+
     fn encode(self) -> u8 {
         match self {
-            Self::None => 0,
-
-            Self::OverTemp => 1,
-
-            Self::UnderVoltage => 2,
+            Self::None => Self::NONE,
+            Self::OverTemp => Self::OVERTEMP,
+            Self::UnderVoltage => Self::UNDERVOLTAGE,
         }
     }
 
-    fn decode(byte: u8) -> Result<Self, PowerTelemetryError> {
+    fn decode(byte: u8) -> Result<Self, PowerParseError> {
         Ok(match byte {
-            0 => Self::None,
-            1 => Self::OverTemp,
-            2 => Self::UnderVoltage,
+            Self::NONE => Self::None,
+            Self::OVERTEMP => Self::OverTemp,
+            Self::UNDERVOLTAGE => Self::UnderVoltage,
             _ => {
-                return Err(PowerTelemetryError::UnknownFault(byte));
+                return Err(PowerParseError::UnknownFault(byte));
             }
         })
     }
@@ -167,7 +175,6 @@ impl PowerTelemetry {
             temp_bytes[2],
             temp_bytes[3],
         ]
-
     }
 
     pub fn to_data_words(&self) -> Vec<DataWord> {
@@ -180,16 +187,23 @@ impl PowerTelemetry {
             .collect()
     }
 
-    pub fn from_be_bytes(bytes: &[u8]) -> Result<Self, PowerTelemetryError> {
+    pub fn from_be_bytes(bytes: &[u8]) -> Result<Self, PowerParseError> {
+        if bytes.len() != Self::SIZE {
+            return Err(PowerParseError::InvalidLength {
+                expected: Self::SIZE,
+                actual: bytes.len(),
+            });
+        }
+
         Ok(Self {
             mode: PowerMode::decode((bytes[0] >> 4) & 0b1111)?,
             charge_percent: bytes[1],
-            temperature_c: f32::from_be_bytes(bytes[2..6].try_into().unwrap()),
+            temperature_c: f32::from_be_bytes([bytes[2], bytes[3], bytes[4], bytes[5]]),
             fault: Fault::decode(bytes[0] & 0b1111)?,
         })
     }
 
-    pub fn from_data_words(words: &[DataWord]) -> Result<Self, PowerTelemetryError> {
+    pub fn from_data_words(words: &[DataWord]) -> Result<Self, PowerParseError> {
         let bytes: Vec<u8> = words.iter().flat_map(|word| word.to_be_bytes()).collect();
 
         Self::from_be_bytes(&bytes)
@@ -200,4 +214,49 @@ enum PowerCommand {
     SetMode(PowerMode),
     ClearFault,
     InjectFault(Fault),
+}
+
+impl PowerCommand {
+    const SIZE: usize = 2;
+
+    const SET_MODE: u8 = 0;
+    const CLEAR_FAULT: u8 = 1;
+    const INJECT_FAULT: u8 = 2;
+
+    pub fn to_be_bytes(&self) -> [u8; Self::SIZE] {
+        match self {
+            Self::SetMode(mode) => [Self::SET_MODE, mode.encode()],
+            Self::ClearFault => [Self::CLEAR_FAULT, 0],
+            Self::InjectFault(fault) => [Self::INJECT_FAULT, fault.encode()],
+        }
+    }
+
+    pub fn to_data_words(&self) -> Vec<DataWord> {
+        let [a, b] = self.to_be_bytes();
+        vec![DataWord::from(u16::from_be_bytes([a, b]))]
+    }
+
+    pub fn from_be_bytes(bytes: &[u8]) -> Result<Self, PowerParseError> {
+        if bytes.len() != Self::SIZE {
+            return Err(PowerParseError::InvalidLength {
+                expected: Self::SIZE,
+                actual: bytes.len(),
+            });
+        }
+
+        Ok(match bytes[0] {
+            Self::SET_MODE => Self::SetMode(PowerMode::decode(bytes[1])?),
+            Self::CLEAR_FAULT => Self::ClearFault,
+            Self::INJECT_FAULT => Self::InjectFault(Fault::decode(bytes[1])?),
+            _ => {
+                return Err(PowerParseError::UnknownCommand(bytes[0]));
+            }
+        })
+    }
+
+    pub fn from_data_words(words: &[DataWord]) -> Result<Self, PowerParseError> {
+        let bytes: Vec<u8> = words.iter().flat_map(|word| word.to_be_bytes()).collect();
+
+        Self::from_be_bytes(&bytes)
+    }
 }
