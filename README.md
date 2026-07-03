@@ -10,3 +10,4 @@ can be followed more easily.
 ### 1553
 * rs-proj-1553-heartbeat
 * rs-proj-1553-send-data
+* rs-proj-1553-devices

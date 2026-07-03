@@ -1,8 +1,8 @@
-# 1553 Send Data Example
+# 1553 Devices Example
 
-Example that sends 1553 command and status words on an Ethernet bus and those
-transactions specify subaddresses and include data words. To run the example
-start the following executables in different terminals in the following order:
+Example that extends the previous 1553 examples to have the remote terminals
+simulate actual devices. To run the example start the following executables in
+different terminals in the following order:
 
 ```
 cargo run --bin bus
@@ -12,26 +12,14 @@ cargo run --bin bus_controller
 ```
 
 Note, this example took and built upon the library code that was started in the
-1553 heartbeat example. Most of the "example specific" code lives in /app and
+1553 send-data example. Most of the "example specific" code lives in /app and
 /bin with the rest being reusable architecture.
 
 # Limitations/Further Thoughts
-* The `protocol` module has made a lot of progress as well as the new `net`
-  module.
-* The `app` module could use work to make setting up the bus controller and RTs
-  more modular.
-    * Bus control needs to be able to react to scheduled and on demand
-      transactions.
-    * RTs should look into generalizing how to respond to different
-      subaddresses.
-* Would be nice to start considering making "realistic devices" where each has
-  their own subaddress definitions (including what the data words mean) and
-  remote terminals.
+* There are a lot of spots constructing vectors. Consideration could be added
+  to reduce the number of heap allocations necessary especially when doing
+  empty values (maybe change data on messages to be an option?)
 
 # Next steps
 * The next project could simply be setting up the bus controller to do
   scheduled and manual transactions.
-* Could also work on implementing a bus monitor that just prints out the
-  messages it sees on the bus in a CLI table format.
-* Lastly making actual device remote terminals would be a useful building block
-  towards doing a TUI style interface over the bus controller.
