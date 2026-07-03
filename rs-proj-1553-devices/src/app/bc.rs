@@ -6,44 +6,51 @@ use tokio::{
 };
 use tracing::trace;
 
-use crate::protocol::{CmdWord, CommandMessage, DataWord, Subaddress, TxRx};
-use crate::{devices::gps::GpsTelemetry, net::TcpBusController, protocol::StatusMessage};
-
-const RT5_INTERVAL: f64 = 3.0; // Hertz
-const RT13_INTERVAL: f64 = 1.0; // Hertz
+use crate::{
+    devices::gps::GpsTelemetry,
+    devices::power::{Fault, PowerCommand, PowerTelemetry},
+    net::TcpBusController,
+    protocol::StatusMessage,
+    protocol::{CmdWord, CommandMessage, DataWord, Subaddress, TxRx},
+};
 
 pub async fn bus_controller(server_addr: SocketAddr) -> io::Result<()> {
     let mut tcp_bc = TcpBusController::new(server_addr).await?;
 
-    let mut rt5_5r_interval = interval(Duration::from_millis((1000.0 / RT5_INTERVAL) as u64));
+    let mut rt5_5r_interval = interval(Duration::from_secs(7));
     rt5_5r_interval.set_missed_tick_behavior(MissedTickBehavior::Delay);
+    rt5_5r_interval.tick().await; // Consume initial tick
 
-    let mut rt5_7t_interval = interval(Duration::from_millis((300.0 / RT5_INTERVAL) as u64));
+    let mut rt5_7t_interval = interval(Duration::from_secs(1));
     rt5_7t_interval.set_missed_tick_behavior(MissedTickBehavior::Delay);
+    rt5_7t_interval.tick().await; // Consume initial tick
 
-    let mut rt13_13t_interval = interval(Duration::from_millis((2000.0 / RT13_INTERVAL) as u64));
+    let mut rt13_13t_interval = interval(Duration::from_secs(3));
     rt13_13t_interval.set_missed_tick_behavior(MissedTickBehavior::Delay);
+    rt13_13t_interval.tick().await; // Consume initial tick
 
     loop {
         tokio::select! {
             _ = rt5_5r_interval.tick() => {
                 let cmd_msg = CommandMessage {
-                    word: CmdWord::new(5, Subaddress { address: 5, tr: TxRx::R }, 3),
-                    data: [5_u16, 5, 4].map(DataWord::from).to_vec()
+                    word: CmdWord::new(5, Subaddress { address: 5, tr: TxRx::R }, 1),
+                    data: PowerCommand::InjectFault(Fault::OverTemp).to_data_words(),
                 };
 
-                let _ = do_transaction(&mut tcp_bc, cmd_msg).await?;
+                do_transaction(&mut tcp_bc, cmd_msg).await?;
             }
 
             _ = rt5_7t_interval.tick() => {
-                let cmd = CmdWord::new(5, Subaddress { address: 7, tr: TxRx::T }, 5);
+                let cmd = CmdWord::new(5, Subaddress { address: 7, tr: TxRx::T }, 3);
                 let data: Vec<DataWord> = Vec::new();
                 let cmd_msg = CommandMessage {
                     word: cmd,
                     data
                 };
 
-                let _ = do_transaction(&mut tcp_bc, cmd_msg).await?;
+                let status_msg = do_transaction(&mut tcp_bc, cmd_msg).await?;
+                let power_telemetry = PowerTelemetry::from_data_words(&status_msg.data);
+                println!("{:?}", power_telemetry.unwrap());
             }
 
             _ = rt13_13t_interval.tick() => {

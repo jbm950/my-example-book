@@ -10,7 +10,7 @@ pub enum PowerParseError {
     UnknownCommand(u8),
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum PowerMode {
     Idle,
     Charging,
@@ -42,7 +42,7 @@ impl PowerMode {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum Fault {
     None,
     OverTemp,
@@ -154,6 +154,7 @@ impl Power {
     }
 }
 
+#[derive(Debug)]
 pub struct PowerTelemetry {
     mode: PowerMode,
     charge_percent: u8, // Smaller type than simulated state to conserve bandwidth
