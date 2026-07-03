@@ -9,6 +9,13 @@ pub type CommandMessage = Message<CmdWord>;
 pub type StatusMessage = Message<StatusWord>;
 
 impl<W: ProtocolWord> Message<W> {
+    pub fn empty(word: W) -> Self {
+        Self {
+            word,
+            data: Vec::new(),
+        }
+    }
+
     pub fn encode(&self) -> Vec<u8> {
         let mut out = Vec::with_capacity(2 + self.data.len() * 2);
 

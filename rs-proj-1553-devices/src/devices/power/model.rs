@@ -2,6 +2,7 @@ use tokio::time::Duration;
 
 use crate::protocol::DataWord;
 
+#[derive(Debug)]
 pub enum PowerParseError {
     InvalidLength { expected: usize, actual: usize },
     UnknownMode(u8),
@@ -73,11 +74,11 @@ impl Fault {
     }
 }
 
-struct Power {
-    mode: PowerMode,
-    charge_percent: f32,
-    temperature_c: f32,
-    fault: Fault,
+pub struct Power {
+    pub mode: PowerMode,
+    pub charge_percent: f32,
+    pub temperature_c: f32,
+    pub fault: Fault,
 }
 
 impl Power {
@@ -86,7 +87,7 @@ impl Power {
     const DISCHARGE_RATE: f32 = 100.0 / 60.0; // Fully discharge in 60 seconds
 
     const MAX_TEMP: f32 = 35.0;
-    const AMBIENT_TEMP: f32 = 22.0;
+    pub const AMBIENT_TEMP: f32 = 22.0;
     const CHARGE_TEMP_RATE: f32 = 0.1;
     const DISCHARGE_TEMP_RATE: f32 = 0.05;
     const IDLE_TEMP_RATE: f32 = -0.01;
@@ -153,7 +154,7 @@ impl Power {
     }
 }
 
-struct PowerTelemetry {
+pub struct PowerTelemetry {
     mode: PowerMode,
     charge_percent: u8, // Smaller type than simulated state to conserve bandwidth
     temperature_c: f32,
@@ -210,7 +211,7 @@ impl PowerTelemetry {
     }
 }
 
-enum PowerCommand {
+pub enum PowerCommand {
     SetMode(PowerMode),
     ClearFault,
     InjectFault(Fault),
