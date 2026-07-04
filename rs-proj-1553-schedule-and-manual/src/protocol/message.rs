@@ -1,5 +1,6 @@
 use crate::protocol::{CmdWord, DataWord, ProtocolWord, StatusWord};
 
+#[derive(Clone)]
 pub struct Message<W> {
     pub word: W,
     pub data: Vec<DataWord>,
