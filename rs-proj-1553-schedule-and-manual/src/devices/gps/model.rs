@@ -50,7 +50,7 @@ impl GpsTelemetry {
         }
     }
 
-    pub fn from_data_words(words: Vec<DataWord>) -> Self {
+    pub fn from_data_words(words: &[DataWord]) -> Self {
         let bytes: Vec<u8> = words.iter().flat_map(|word| word.to_be_bytes()).collect();
 
         Self::from_be_bytes(&bytes)

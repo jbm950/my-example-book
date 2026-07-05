@@ -95,7 +95,7 @@ async fn handle_transaction(mut transaction_rx: mpsc::Receiver<Transaction>) {
                 }
             }
             GPS_RT => { // Only 1 subaddress currently implemented for GPS, 13T
-                let gps_telemetry = GpsTelemetry::from_data_words(transaction.status.data);
+                let gps_telemetry = GpsTelemetry::from_data_words(&transaction.status.data);
                 debug!(telemetry = ?gps_telemetry, "RT13 GPS Telemetry");
             }
             unknown_addr => {
