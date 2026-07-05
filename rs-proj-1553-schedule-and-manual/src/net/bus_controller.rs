@@ -3,10 +3,11 @@ use std::net::SocketAddr;
 use tokio::{
     io::{self, AsyncReadExt, AsyncWriteExt},
     net::TcpStream,
+    sync::mpsc,
 };
 use tracing::{debug, trace};
 
-use crate::protocol::{CommandMessage, DataWord, StatusMessage, StatusWord, TxRx};
+use crate::protocol::{CommandMessage, DataWord, StatusMessage, StatusWord, Transaction, TxRx};
 
 const WORD_SIZE: usize = 2;
 
@@ -21,11 +22,17 @@ impl TcpBusController {
         Ok(Self { bus })
     }
 
-    pub async fn transaction(&mut self, cmd_msg: CommandMessage) -> io::Result<StatusMessage> {
-        debug!(
-            "Starting transaction, RT: {}, Subaddr: {}, Tx/Rx: {:?}",
-            cmd_msg.word.rt_addr, cmd_msg.word.subaddr.address, cmd_msg.word.subaddr.tr
-        );
+    #[tracing::instrument(
+        level = "trace",
+        skip(self, cmd_msg),
+        fields(
+            rt = cmd_msg.word.rt_addr,
+            subaddr = cmd_msg.word.subaddr.address,
+            tr = ?cmd_msg.word.subaddr.tr
+        )
+    )]
+    async fn transaction(&mut self, cmd_msg: CommandMessage) -> io::Result<Transaction> {
+        trace!("Starting transaction");
         self.send_cmd(&cmd_msg).await?;
 
         let status_word = self.read_status_word().await?;
@@ -36,10 +43,30 @@ impl TcpBusController {
             TxRx::R => Vec::new(),
         };
 
-        Ok(StatusMessage {
-            word: status_word,
-            data: data_words,
+        trace!("Transaction complete");
+        Ok(Transaction {
+            command: cmd_msg,
+            status: StatusMessage {
+                word: status_word,
+                data: data_words,
+            },
         })
+    }
+
+    pub async fn run(
+        mut self,
+        mut command_rx: mpsc::Receiver<CommandMessage>,
+        transactions_tx: mpsc::Sender<Transaction>,
+    ) -> io::Result<()> {
+        while let Some(command) = command_rx.recv().await {
+            let transaction = self.transaction(command).await?;
+            if transactions_tx.send(transaction).await.is_err() {
+                debug!("Transaction receiver dropped. Bus controller exiting.");
+                break;
+            }
+        }
+
+        Ok(())
     }
 
     async fn send_cmd(&mut self, cmd_msg: &CommandMessage) -> io::Result<()> {
@@ -49,8 +76,7 @@ impl TcpBusController {
             msg_bytes.len(),
             cmd_msg.data.len(),
         );
-        self.bus.write_all(&msg_bytes).await?;
-        Ok(())
+        self.bus.write_all(&msg_bytes).await
     }
 
     async fn read_status_word(&mut self) -> io::Result<StatusWord> {
