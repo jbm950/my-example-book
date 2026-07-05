@@ -1,6 +1,6 @@
 use crate::protocol::ProtocolWord;
 
-use super::support::{extract_field, extract_flag};
+use super::{WORD_SIZE, support::{extract_field, extract_flag}};
 
 const RT_ADDR_POSITION: u8 = 11;
 const MSG_ERROR_POSITION: u8 = 10;
@@ -24,7 +24,7 @@ pub struct StatusWord {
 }
 
 impl ProtocolWord for StatusWord {
-    fn to_be_bytes(self) -> [u8; 2] {
+    fn to_be_bytes(self) -> [u8; WORD_SIZE] {
         u16::from(self).to_be_bytes()
     }
 }
@@ -67,8 +67,8 @@ impl From<u16> for StatusWord {
     }
 }
 
-impl From<[u8; 2]> for StatusWord {
-    fn from(bytes: [u8; 2]) -> StatusWord {
+impl From<[u8; WORD_SIZE]> for StatusWord {
+    fn from(bytes: [u8; WORD_SIZE]) -> StatusWord {
         Self::from(u16::from_be_bytes(bytes))
     }
 }
@@ -77,7 +77,7 @@ impl TryFrom<&[u8]> for StatusWord {
     type Error = std::array::TryFromSliceError;
 
     fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
-        let arr: [u8; 2] = bytes.try_into()?;
+        let arr: [u8; WORD_SIZE] = bytes.try_into()?;
         Ok(Self::from(arr))
     }
 }

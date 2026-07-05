@@ -12,3 +12,5 @@ pub use message::{CommandMessage, StatusMessage};
 pub use protocol_word::ProtocolWord;
 pub use status_word::StatusWord;
 pub use transaction::Transaction;
+
+pub const WORD_SIZE: usize = 2;

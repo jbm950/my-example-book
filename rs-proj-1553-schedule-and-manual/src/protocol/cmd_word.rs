@@ -1,6 +1,6 @@
 use crate::protocol::ProtocolWord;
 
-use super::support::{extract_field, extract_flag};
+use super::{WORD_SIZE, support::{extract_field, extract_flag}};
 
 // Values are the actual protocol bit values for each type.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]
@@ -44,7 +44,7 @@ impl CmdWord {
 }
 
 impl ProtocolWord for CmdWord {
-    fn to_be_bytes(self) -> [u8; 2] {
+    fn to_be_bytes(self) -> [u8; WORD_SIZE] {
         u16::from(self).to_be_bytes()
     }
 }
@@ -86,8 +86,8 @@ impl From<u16> for CmdWord {
     }
 }
 
-impl From<[u8; 2]> for CmdWord {
-    fn from(bytes: [u8; 2]) -> CmdWord {
+impl From<[u8; WORD_SIZE]> for CmdWord {
+    fn from(bytes: [u8; WORD_SIZE]) -> CmdWord {
         Self::from(u16::from_be_bytes(bytes))
     }
 }
@@ -96,7 +96,7 @@ impl TryFrom<&[u8]> for CmdWord {
     type Error = std::array::TryFromSliceError;
 
     fn try_from(bytes: &[u8]) -> Result<Self, Self::Error> {
-        let arr: [u8; 2] = bytes.try_into()?;
+        let arr: [u8; WORD_SIZE] = bytes.try_into()?;
         Ok(Self::from(arr))
     }
 }

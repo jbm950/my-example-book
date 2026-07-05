@@ -7,9 +7,7 @@ use tokio::{
 };
 use tracing::{debug, trace};
 
-use crate::protocol::{CommandMessage, DataWord, StatusMessage, StatusWord, Transaction, TxRx};
-
-const WORD_SIZE: usize = 2;
+use crate::protocol::{CommandMessage, DataWord, StatusMessage, StatusWord, Transaction, TxRx, WORD_SIZE};
 
 /// Bus Controller for a 1553 over Ethernet implementation.
 pub struct TcpBusController {

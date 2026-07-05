@@ -6,9 +6,7 @@ use tokio::{
 };
 use tracing::{debug, trace};
 
-use crate::protocol::{CmdWord, CommandMessage, DataWord, StatusMessage, TxRx};
-
-const WORD_SIZE: usize = 2;
+use crate::protocol::{CmdWord, CommandMessage, DataWord, StatusMessage, TxRx, WORD_SIZE};
 
 /// Remote terminal for a 1553 over Ethernet implementation.
 pub struct TcpRt {
