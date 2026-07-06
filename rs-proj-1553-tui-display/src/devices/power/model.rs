@@ -156,10 +156,10 @@ impl Power {
 
 #[derive(Debug)]
 pub struct PowerTelemetry {
-    mode: PowerMode,
-    charge_percent: u8, // Smaller type than simulated state to conserve bandwidth
-    temperature_c: f32,
-    fault: Fault,
+    pub mode: PowerMode,
+    pub charge_percent: u8, // Smaller type than simulated state to conserve bandwidth
+    pub temperature_c: f32,
+    pub fault: Fault,
 }
 
 impl PowerTelemetry {

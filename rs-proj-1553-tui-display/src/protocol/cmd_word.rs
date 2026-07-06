@@ -1,6 +1,9 @@
 use crate::protocol::ProtocolWord;
 
-use super::{WORD_SIZE, support::{extract_field, extract_flag}};
+use super::{
+    WORD_SIZE,
+    support::{extract_field, extract_flag},
+};
 
 // Values are the actual protocol bit values for each type.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq)]

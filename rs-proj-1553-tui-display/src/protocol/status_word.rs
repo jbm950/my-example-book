@@ -1,6 +1,9 @@
 use crate::protocol::ProtocolWord;
 
-use super::{WORD_SIZE, support::{extract_field, extract_flag}};
+use super::{
+    WORD_SIZE,
+    support::{extract_field, extract_flag},
+};
 
 const RT_ADDR_POSITION: u8 = 11;
 const MSG_ERROR_POSITION: u8 = 10;
