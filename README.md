@@ -12,3 +12,4 @@ can be followed more easily.
 * rs-proj-1553-send-data
 * rs-proj-1553-devices
 * rs-proj-1553-schedule-and-manual
+* rs-proj-1553-tui-display
