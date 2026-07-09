@@ -23,7 +23,7 @@ pub async fn run_app(
 
         tokio::select! {
             Some(key_event) = input_rx.recv() => {
-                app.handle_key(key_event);
+                app.handle_key(key_event).await;
             }
 
             Some(transaction) = transactions_rx.recv() => {

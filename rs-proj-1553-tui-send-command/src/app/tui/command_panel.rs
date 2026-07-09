@@ -2,7 +2,6 @@ use ratatui::widgets::{ListItem, ListState};
 
 use crate::devices::power::{Fault, PowerCommand, PowerMode};
 
-
 pub struct CommandPanel {
     commands: [PowerCommand; 6],
     state: ListState,

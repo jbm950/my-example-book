@@ -20,6 +20,6 @@ pub async fn run(server_addr: SocketAddr) {
     let bus_controller = TcpBusController::new(server_addr).await.unwrap();
     let _ = tokio::spawn(bus_controller.run(command_rx, transactions_tx));
 
-    let mut app_state = App::default();
+    let mut app_state = App::new(command_tx);
     let _ = tui::run_app(&mut app_state, &mut transactions_rx).await;
 }

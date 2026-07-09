@@ -1,8 +1,9 @@
 use ratatui::{
     Frame,
     layout::{Constraint, Layout},
+    style::Modifier,
     text::Line,
-    widgets::{Block, Paragraph},
+    widgets::{Block, List, Paragraph},
 };
 
 use crate::{
@@ -10,12 +11,24 @@ use crate::{
     devices::{gps::GpsTelemetry, power::PowerTelemetry},
 };
 
-pub fn ui(frame: &mut Frame, app: &App) {
+pub fn ui(frame: &mut Frame, app: &mut App) {
     let [power_area, gps_area] =
         Layout::vertical([Constraint::Fill(1), Constraint::Fill(1)]).areas(frame.area());
 
+    let [power_telem_area, power_cmd_area] =
+        Layout::horizontal([Constraint::Fill(1), Constraint::Fill(1)]).areas(power_area);
+
     let power_window = Paragraph::new(power_lines(&app.power_telemetry)).block(Block::bordered());
-    frame.render_widget(power_window, power_area);
+    frame.render_widget(power_window, power_telem_area);
+
+    let power_commands = List::new(app.power_commands.list_commands())
+        .block(Block::bordered())
+        .highlight_style(Modifier::REVERSED);
+    frame.render_stateful_widget(
+        power_commands,
+        power_cmd_area,
+        &mut app.power_commands.state(),
+    );
 
     let gps_window = Paragraph::new(gps_lines(&app.gps_telemetry)).block(Block::bordered());
     frame.render_widget(gps_window, gps_area);
