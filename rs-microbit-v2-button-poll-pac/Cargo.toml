@@ -1,0 +1,9 @@
+[package]
+name = "rs-microbit-v2-button-poll-pac"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cortex-m-rt = "0.7.5"
+nrf52833-pac = { version = "0.12.2", features = ["cortex-m-rt"] }
+panic-halt = "1.0.0"
