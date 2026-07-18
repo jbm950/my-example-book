@@ -1,0 +1,12 @@
+[package]
+name = "rs-microbit-v2-hal-blinky"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cortex-m = { version = "0.7.7", features = ["critical-section-single-core"] }
+cortex-m-rt = "0.7.5"
+critical-section = "1.2.0"
+embedded-hal = "1.0.0"
+nrf52833-hal = { version = "0.19.0", features = ["rt"] }
+panic-halt = "1.0.0"
