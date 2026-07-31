@@ -3,4 +3,4 @@ chip = "STM32F446RE"
 connect_under_reset = true
 
 [default.rtt]
-enabled = false
+enabled = true
