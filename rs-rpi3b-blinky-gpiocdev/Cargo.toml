@@ -1,0 +1,7 @@
+[package]
+name = "rs-rpi3b-blinky-gpiocdev"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+gpiocdev = "0.8.0"
