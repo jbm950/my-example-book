@@ -1,0 +1,18 @@
+[project]
+name = "py-sdr-pluto-info"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "jbm950", email = "jmilam343@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "pyadi-iio>=0.0.21",
+]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.414",
+    "ruff>=0.16.8",
+]
